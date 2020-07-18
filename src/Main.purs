@@ -5,10 +5,12 @@ import Prelude
 import Effect (Effect)
 import Effect.Console (log)
 import Screeps.Game as Game
+import Screeps.Memory as Memory
+import Foreign.Object as F
 
 main :: Effect Unit
 main = do
   game <- Game.getGameGlobal
-  startUsed <- Game.getUsed game
-  log $ "start: " <> show startUsed
+  memory <- Memory.getMemoryGlobal
+  let spawn = F.lookup "Spawn1" (Game.spawns game)
   log "blop"
