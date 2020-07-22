@@ -172,8 +172,8 @@ var PS = {};
           return Screeps_FFI.unsafeGetFieldEff(key)(memoryGlobal);
       };
   };
-  exports["get"] = get;
   exports["set"] = set;
+  exports["get"] = get;
   exports["getMemoryGlobal"] = $foreign.getMemoryGlobal;
 })(PS);
 (function($PS) {

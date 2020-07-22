@@ -10,6 +10,7 @@ You can edit this file as you like.
   , "console"
   , "effect"
   , "foreign-object"
+  , "generics-rep"
   , "maybe"
   , "ordered-collections"
   , "psci-support"

@@ -8,8 +8,7 @@ foreign import getMemoryGlobal :: Effect MemoryGlobal
 foreign import data RawMemoryGlobal :: Type
 foreign import getRawMemoryGlobal :: Effect RawMemoryGlobal
 
+set :: MemoryGlobal -> String -> String -> Effect Unit
+set memoryGlobal key val = unsafeSetFieldEff key memoryGlobal val
 get :: MemoryGlobal -> String -> Effect String
 get memoryGlobal key = unsafeGetFieldEff key memoryGlobal
-
-set :: forall a. MemoryGlobal -> String -> a -> Effect Unit
-set memoryGlobal key val = unsafeSetFieldEff key memoryGlobal val
