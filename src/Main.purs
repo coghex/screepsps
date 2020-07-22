@@ -1,7 +1,6 @@
 module Main where
 
 import Prelude
-import Data.Either (either)
 import Effect (Effect)
 import Effect.Console (log)
 import Screeps.Game as Game
@@ -15,7 +14,4 @@ main = do
   Memory.set memory "init" "true"
   init <- Memory.get memory "init"
   let spawn = F.lookup "Spawn1" (Game.spawns game)
-  either log logErr init
-
-logErr :: forall a. a -> Effect Unit
-logErr _ = log "error"
+  log init
