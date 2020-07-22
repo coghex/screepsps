@@ -1,0 +1,2 @@
+module Empire.Init where
+

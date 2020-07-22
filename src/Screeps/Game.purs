@@ -1,5 +1,4 @@
 module Screeps.Game where
-import Prelude
 import Foreign.Object as F
 import Effect (Effect)
 import Screeps.Types (GameGlobal, Spawn)

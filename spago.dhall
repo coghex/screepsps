@@ -4,7 +4,9 @@ You can edit this file as you like.
 -}
 { name = "my-project"
 , dependencies =
-  [ "argonaut-core"
+  [ "argonaut-codecs"
+  , "argonaut-core"
+  , "argonaut-generic"
   , "console"
   , "effect"
   , "foreign-object"
