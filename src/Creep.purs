@@ -6,8 +6,9 @@ import Data.Maybe (Maybe(Just, Nothing))
 import Data.Int ( toStringAs, decimal )
 import Data.Map as Map
 import Data.List (head)
+import Foreign.Object as F
 import Screeps.Types
 import Screeps.Creep as Creep
 
-processCreeps :: Map.Map String Creep -> Effect Unit
-processCreeps map = log "blop"
+processCreeps :: F.Object Creep -> Effect Unit
+processCreeps map = log $ show $ Creep.name <$> map
