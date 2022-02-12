@@ -13,9 +13,15 @@ to generate this file without the comments in this block.
 { name = "my-project"
 , dependencies =
   [ "argonaut-codecs"
+  , "argonaut-generic"
   , "console"
   , "effect"
   , "foreign-object"
+  , "functions"
+  , "integers"
+  , "lists"
+  , "maybe"
+  , "ordered-collections"
   , "prelude"
   ]
 , packages = ./packages.dhall

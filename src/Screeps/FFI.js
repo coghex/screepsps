@@ -46,6 +46,17 @@ exports.runThisEffFn1 = function(key){
         }
     }
 }
+exports.runThisEffFn2 = function(key){
+  return function(self){
+    return function(a){
+      return function(b){
+        return function(){
+          return self[key](a, b);
+        }
+      }
+    }
+  }
+}
 exports.runThisFn0 = function(key){
   return function(self){
     return self[key]();
@@ -59,3 +70,22 @@ exports.runThisFn1 = function(key){
     }
   }
 }
+exports.null = null;
+exports.undefined = undefined
+exports.notNullOrUndefined = function(x){
+    return x;
+}
+exports.isNull = function(x){
+    return x === null;
+}
+exports.isUndefined = function(x){
+    return x === undefined;
+}
+exports.toMaybeImpl = function (val, nothing, just){
+    if(val === null || val === undefined){
+        return nothing;
+    } else {
+        return just(val);
+    }
+}
+
