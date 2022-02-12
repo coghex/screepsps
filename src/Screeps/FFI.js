@@ -18,10 +18,17 @@ exports.unsafeSetFieldEff = function(key){
     return function(obj){
         return function(val){
             return function(){
-                return obj[key];
+                obj[key] = val;
             }
         }
     }
+}
+exports.unsafeDeleteFieldEff = function(key){
+  return function(obj){
+      return function(){
+        delete obj[key];
+      }
+  }
 }
 exports.runThisEffFn0 = function(key){
     return function(self){
@@ -38,4 +45,17 @@ exports.runThisEffFn1 = function(key){
             }
         }
     }
+}
+exports.runThisFn0 = function(key){
+  return function(self){
+    return self[key]();
+  }
+}
+
+exports.runThisFn1 = function(key){
+  return function(self){
+    return function(a){
+      return self[key](a);
+    }
+  }
 }
