@@ -15,13 +15,12 @@ import Foreign.Object as F
 main :: Effect Unit
 main = do
   game <- Game.getGameGlobal
-  -- memory manipulation example
---  memory <- Memory.getMemoryGlobal
---  Memory.set memory "init" "true"
---  init <- Memory.get memory "init"
+  memory <- Memory.getMemoryGlobal
+  Memory.set memory "utility" 0
+--  init <- Memory.get memory "utility"
   let spawn = F.lookup "Spawn1" (Game.spawns game)
   let creeps = Game.creeps game
-  processCreeps creeps
+  processCreeps creeps memory
   -- TODO: finish tower code
   let tower = Game.getObjectById game (Id "TOWER_ID")
   case tower of

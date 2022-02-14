@@ -14,14 +14,16 @@ to generate this file without the comments in this block.
 , dependencies =
   [ "argonaut-codecs"
   , "argonaut-generic"
+  , "arrays"
   , "console"
   , "effect"
+  , "either"
   , "foreign-object"
   , "functions"
   , "integers"
-  , "lists"
   , "maybe"
   , "ordered-collections"
+  , "partial"
   , "prelude"
   ]
 , packages = ./packages.dhall
