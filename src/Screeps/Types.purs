@@ -7,7 +7,7 @@ import Data.Generic.Rep ( class Generic )
 import Data.Eq.Generic ( genericEq )
 import Data.Show ( class Show )
 import Data.Show.Generic ( genericShow )
-import Data.Argonaut.Decode (class DecodeJson, decodeJson, JsonDecodeError(..))
+import Data.Argonaut.Decode (class DecodeJson, decodeJson, JsonDecodeError(..), getField)
 import Data.Argonaut.Encode (class EncodeJson, encodeJson)
 import Data.Argonaut.Encode.Generic (genericEncodeJson)
 import Data.Argonaut.Decode.Generic (genericDecodeJson)
@@ -170,6 +170,3 @@ lsFromStr "loopGo"   = Just LoopGo
 lsFromStr "loopStop" = Just LoopStop
 lsFromStr "loopNULL" = Just LoopNULL
 lsFromStr _          = Nothing
--- memory for the creep as held in creep mem looks like this
-data CreepMem = CMNULL | CreepMem { creepUtl  ∷ Int
-                                  , creepRole ∷ Role }

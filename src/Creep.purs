@@ -6,11 +6,13 @@ import Data.Array (null, length, uncons, filter, foldl)
 import Data.Array.Partial (head, tail)
 import Partial.Unsafe (unsafePartial)
 import Data.Argonaut.Core ( Json, caseJsonArray, stringify, jsonEmptyString )
-import Data.Argonaut.Decode ( printJsonDecodeError, JsonDecodeError, getField )
+import Data.Argonaut.Decode ( printJsonDecodeError, JsonDecodeError, getField, decodeJson )
+import Data.Argonaut.Encode ( encodeJson )
 import Data.Maybe (Maybe(Just, Nothing))
 import Data.Int ( toStringAs, decimal, fromString, quot )
 import Data.Either ( Either(..) )
 import Data.Foldable ( for_ )
+import Data.Traversable ( sequence )
 import Data.Map as Map
 import Data.Map.Internal as MapI
 import Data.Set as S
@@ -50,8 +52,8 @@ processCreeps hash game mem = do
     creeps   ← case creeps' of
                    Left err → pure $ F.empty
                    Right c0 → pure c0
---    utl0 ← foldl (+) zero creeputl
-    let utl0 = 0
+    -- global utility is sum of each creep utililty
+    let utl0       = foldl (+) zero creeputl
         roleScores = map (calcRoleScore creeps) roleList
     -- new utility is just the sum of everyone's utility
     -- returns the best alternative role
@@ -60,6 +62,7 @@ processCreeps hash game mem = do
     log $ "U(n-1): " <> show utl0 <> ", U(n): "
             <> (show alternative)
 
+-- | finds the score for a given role for all the creeps at once
 calcRoleScore ∷ F.Object Json → Role → Int
 calcRoleScore creeps RoleNULL      = 0
 calcRoleScore creeps RoleHarvester = score
@@ -104,44 +107,3 @@ spawnCreep spawn parts name RoleHarvester = do
         Left  err → log $ show err
         Right str → log $ str <> " created succesfully"
 spawnCreep spawn parts name RoleNULL      = pure unit
-
--- -- | calcualtes all utiliteies for all hypothetical alternatives
--- maximiseUtilities ∷ Int → Int → Array Int → Array Creep → Int
--- maximiseUtilities n utl0 utls creeps = utl1
---   where best = calcAlternatives (creeps[0].memory.role) roleList utls creeps
---         utl1 = utl0
--- 
--- -- | alternatives for each possible role
--- calcAlternatives ∷ Role → Array Role → Array Int → Array Creep → Role
--- calcAlternatives current roles array creepmem = roles[best]
---   where best = max (calcAlternative current roles array creepmem)
--- calcAlternative ∷ Role → Array Role → Array Int → Array Creep → Array Int
--- calcAlternative _       []    _     _        = []
--- calcAlternative current roles array creepmem
---   = score <> calcAlternative roles' array creepmem
---   where roles' = case uncons roles of
---                    Just {head: _, tail: rs} → rs
---                    Nothing → []
---         score  = case uncons roles of
---                    Just {head: r, tail: _}  → calcAlternativeScore r creepmem
---                    Nothing → []
--- calcAlternativeScore ∷ Role → Array Creep → Int
--- calcAlternativeScore role creepmem = 0
-
--- | this is the main utility calculation function,
---   it goes though and calculates the utility for every creep
--- calcUtility ∷ Array Role → Array Int
--- calcUtility roles = calcUtilityF roles nHarv nNULL
---   where nHarv = length $ filter ((==) RoleHarvester) roles
---         nNULL = length $ filter ((==) RoleNULL)      roles
--- calcUtilityF ∷ Array Role → Int → Int → Array Int
--- calcUtilityF []    _     _     = []
--- calcUtilityF roles nHarv nNULL = cost <> calcUtilityF rolestail nHarv nNULL
---   where rolestail = case uncons roles of
---                  Just {head: _, tail: rt} → rt
---                  Nothing                  → []
---         cost      = case uncons roles of
---                  Just {head: r, tail: _}  → [costOfRole r]
---                  Nothing                  → [-1]
--- costOfRole ∷ Role → Int
--- costOfRole r = 0
