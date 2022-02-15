@@ -2,16 +2,20 @@ module Creep where
 import Prelude
 import Effect (Effect)
 import Effect.Console (log)
-import Data.Array (null, length, uncons, filter)
+import Data.Array (null, length, uncons, filter, foldl)
 import Data.Array.Partial (head, tail)
-import Data.Tuple (Tuple, snd)
 import Partial.Unsafe (unsafePartial)
-import Data.Argonaut.Decode ( printJsonDecodeError, JsonDecodeError )
+import Data.Argonaut.Core ( Json, caseJsonArray, stringify, jsonEmptyString )
+import Data.Argonaut.Decode ( printJsonDecodeError, JsonDecodeError, getField )
 import Data.Maybe (Maybe(Just, Nothing))
-import Data.Int ( toStringAs, decimal, fromString )
+import Data.Int ( toStringAs, decimal, fromString, quot )
 import Data.Either ( Either(..) )
-import Data.Tuple (Tuple)
+import Data.Foldable ( for_ )
 import Data.Map as Map
+import Data.Map.Internal as MapI
+import Data.Set as S
+import Data.List as L
+import Data.Tuple
 import Foreign.Object as F
 import Screeps.Types
 import Screeps.Creep as Creep
@@ -37,47 +41,55 @@ processCreeps hash game mem = do
       Nothing → log "fatal error: no Spawn1"
       -- first creep will get a random name, creep1 is the index
       Just s1 → createCreep s1 "Creep1"
-  else do
   -- this is the main algorithm, takes the old utility function and
   -- goes through each creep seeing if they can improve the situation
---    init  ← Memory.get mem "utility"
---    init' ← case init of
---               Left str → do
---                             log $ printJsonDecodeError str
---                             pure (-1)
---               Right a0 → case a0 of
---                 Nothing → pure 0
---                 Just n0 → pure n0
+  else do
     -- returns creep utilities as array of ints in the same order as the index
     creeputl ← Memory.getCreepsUtl
+    creeps'  ← Memory.get mem "creeps"
+    creeps   ← case creeps' of
+                   Left err → pure $ F.empty
+                   Right c0 → pure c0
+--    utl0 ← foldl (+) zero creeputl
+    let utl0 = 0
+        roleScores = map (calcRoleScore creeps) roleList
     -- new utility is just the sum of everyone's utility
-    new      ← calcUtilities 0 array creeputl
---    possible ← maximiseUtility 0 new creeputl
-    Memory.set mem "utility" new
---    log $ "U(n-1): " <> show init' <> ", U(n): " <> show new
-    where array             = F.toArrayWithKey processCreep hash
+    -- returns the best alternative role
+        alternative = bestRole roleScores roleList 0 RoleNULL
+    Memory.set mem "utility" utl0
+    log $ "U(n-1): " <> show utl0 <> ", U(n): "
+            <> (show alternative)
 
--- | handles the logic for an individual creep, pure for now to keep things fast
---   we could use this handy foreign lib function to apply a funciton to each
---   member of the creeps hash then convert it to an array without keys
---   but i cant figure out how to return the data yet
-processCreep ∷ String → Creep → Creep
-processCreep _ v = v
+calcRoleScore ∷ F.Object Json → Role → Int
+calcRoleScore creeps RoleNULL      = 0
+calcRoleScore creeps RoleHarvester = score
+  where score = 1000 `quot` (harvs + 1)
+        harvs = numberOfRole RoleHarvester creeps
 
--- | adds together the utility of every creep after
---   they make their descisions
-calcUtilities ∷ Int → Array Creep → Array Int → Effect Int
-calcUtilities n []    creepmem = pure n
-calcUtilities n array []       = pure n
-calcUtilities n array creepmem
-  = calcUtilities (n + n') array creepmem'
-  where creepmem' = case (uncons creepmem) of
-                      Just {head: _, tail: cs} → cs
-                      Nothing → []
-        n'        = case (uncons creepmem) of
-                      Just {head: c, tail: _}  → c
-                      Nothing → 0
-               
+numberOfRole ∷ Role → F.Object Json → Int
+numberOfRole role creeps = F.size $ F.filter roleFilter creeps
+
+roleFilter ∷ Json → Boolean
+roleFilter creep = false
+
+bestRole ∷ Array Int → Array Role → Int → Role → Role
+bestRole []     _     _     role = role
+bestRole _      []    _     role = role
+bestRole scores roles score role = if (score' > score) then bestRole scores' roles' score' role'
+   else bestRole scores' roles' score role
+   where roles'  = case uncons roles of
+                     Just {head: _, tail: rs} → rs
+                     Nothing → []
+         role'   = case uncons roles of
+                     Just {head: r, tail: _}  → r
+                     Nothing → RoleNULL
+         scores' = case uncons scores of
+                     Just {head: _, tail: ss} → ss
+                     Nothing → []
+         score'  = case uncons scores of
+                     Just {head: s, tail: _}  → s
+                     Nothing → 0
+
 -- | basic creep creation function
 createCreep ∷ Spawn → String → Effect Unit
 createCreep spawn name = do
@@ -118,18 +130,18 @@ spawnCreep spawn parts name RoleNULL      = pure unit
 
 -- | this is the main utility calculation function,
 --   it goes though and calculates the utility for every creep
-calcUtility ∷ Array Role → Array Int
-calcUtility roles = calcUtilityF roles nHarv nNULL
-  where nHarv = length $ filter ((==) RoleHarvester) roles
-        nNULL = length $ filter ((==) RoleNULL)      roles
-calcUtilityF ∷ Array Role → Int → Int → Array Int
-calcUtilityF []    _     _     = []
-calcUtilityF roles nHarv nNULL = cost <> calcUtilityF rolestail nHarv nNULL
-  where rolestail = case uncons roles of
-                 Just {head: _, tail: rt} → rt
-                 Nothing                  → []
-        cost      = case uncons roles of
-                 Just {head: r, tail: _}  → [costOfRole r]
-                 Nothing                  → [-1]
-costOfRole ∷ Role → Int
-costOfRole r = 0
+-- calcUtility ∷ Array Role → Array Int
+-- calcUtility roles = calcUtilityF roles nHarv nNULL
+--   where nHarv = length $ filter ((==) RoleHarvester) roles
+--         nNULL = length $ filter ((==) RoleNULL)      roles
+-- calcUtilityF ∷ Array Role → Int → Int → Array Int
+-- calcUtilityF []    _     _     = []
+-- calcUtilityF roles nHarv nNULL = cost <> calcUtilityF rolestail nHarv nNULL
+--   where rolestail = case uncons roles of
+--                  Just {head: _, tail: rt} → rt
+--                  Nothing                  → []
+--         cost      = case uncons roles of
+--                  Just {head: r, tail: _}  → [costOfRole r]
+--                  Nothing                  → [-1]
+-- costOfRole ∷ Role → Int
+-- costOfRole r = 0

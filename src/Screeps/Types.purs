@@ -5,6 +5,7 @@ import Data.Maybe (Maybe(..))
 import Data.Either (note)
 import Data.Generic.Rep ( class Generic )
 import Data.Eq.Generic ( genericEq )
+import Data.Show ( class Show )
 import Data.Show.Generic ( genericShow )
 import Data.Argonaut.Decode (class DecodeJson, decodeJson, JsonDecodeError(..))
 import Data.Argonaut.Encode (class EncodeJson, encodeJson)
@@ -131,19 +132,22 @@ data TargetPosition a =
 data CreepType = CreepDrone | CreepNULL
 -- | creeps can take on many roles, depending on what type they are
 data Role = RoleHarvester | RoleNULL
+instance showRole ∷ Show Role where
+  show RoleHarvester = "RoleHarvester"
+  show RoleNULL      = "RoleNULL"
 instance eqRoles ∷ Eq Role where
   eq RoleNULL      RoleNULL      = true
   eq RoleHarvester RoleHarvester = true
   eq _             RoleNULL      = false
   eq RoleNULL      _             = false
-roleList = [RoleHarvester, RoleNULL]
+roleList = [RoleHarvester, RoleNULL] ∷ Array Role
 instance encodeRole :: EncodeJson Role where
-    encodeJson RoleHarvester = encodeJson "RoleHarvester"
-    encodeJson RoleNULL      = encodeJson "RoleNULL"
+  encodeJson RoleHarvester = encodeJson "RoleHarvester"
+  encodeJson RoleNULL      = encodeJson "RoleNULL"
 instance decodeRole :: DecodeJson Role where
-    decodeJson json = do
-      string <- decodeJson json
-      note (TypeMismatch "Role:") (roleFromStr string)
+  decodeJson json = do
+    string <- decodeJson json
+    note (TypeMismatch "Role:") (roleFromStr string)
 roleFromStr :: String -> Maybe Role
 roleFromStr "RoleHarvester" = Just RoleHarvester
 roleFromStr "RoleNULL"      = Just RoleNULL
@@ -166,3 +170,6 @@ lsFromStr "loopGo"   = Just LoopGo
 lsFromStr "loopStop" = Just LoopStop
 lsFromStr "loopNULL" = Just LoopNULL
 lsFromStr _          = Nothing
+-- memory for the creep as held in creep mem looks like this
+data CreepMem = CMNULL | CreepMem { creepUtl  ∷ Int
+                                  , creepRole ∷ Role }

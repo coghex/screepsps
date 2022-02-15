@@ -5,7 +5,7 @@ exports.getRawMemoryGlobal = function(){ return RawMemory; }
 exports.getCreepsUtl = function(){
   var res = []
   for (var c in Memory.creeps) {
-    res += Memory.creeps[c]["utility"]
+    res = res.concat(Memory.creeps[c]["utility"])
   }
   return res
 }
