@@ -1,10 +1,11 @@
 module Screeps.Types where
 import Prelude
-import Data.Maybe (Maybe(Nothing))
+import Data.Maybe (Maybe(..))
+import Data.Either (note)
 import Data.Generic.Rep ( class Generic )
 import Data.Eq.Generic ( genericEq )
 import Data.Show.Generic ( genericShow )
-import Data.Argonaut.Decode (class DecodeJson, decodeJson)
+import Data.Argonaut.Decode (class DecodeJson, decodeJson, JsonDecodeError(..))
 import Data.Argonaut.Encode (class EncodeJson, encodeJson)
 import Data.Argonaut.Encode.Generic (genericEncodeJson)
 import Data.Argonaut.Decode.Generic (genericDecodeJson)
@@ -126,3 +127,17 @@ data TargetPosition a =
   TargetPos RoomPosition
 
 data Role = RoleHarvester | RoleNULL
+data LoopStatus = LoopGo | LoopStop | LoopNULL
+instance encodeLoopStatus :: EncodeJson LoopStatus where
+    encodeJson LoopGo = encodeJson "loopGo"
+    encodeJson LoopStop = encodeJson "loopStop"
+    encodeJson LoopNULL = encodeJson "loopNULL"
+instance decodeLoopStatus :: DecodeJson LoopStatus where
+    decodeJson json = do
+      string <- decodeJson json
+      note (TypeMismatch "LoopStatus:") (lsFromStr string)
+lsFromStr :: String -> Maybe LoopStatus
+lsFromStr "loopGo"   = Just LoopGo
+lsFromStr "loopStop" = Just LoopStop
+lsFromStr "loopNULL" = Just LoopNULL
+lsFromStr _          = Nothing
