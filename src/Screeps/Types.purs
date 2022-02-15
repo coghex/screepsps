@@ -1,5 +1,6 @@
 module Screeps.Types where
 import Prelude
+import Data.Eq
 import Data.Maybe (Maybe(..))
 import Data.Either (note)
 import Data.Generic.Rep ( class Generic )
@@ -126,7 +127,31 @@ data TargetPosition a =
   TargetObj (RoomObject a) |
   TargetPos RoomPosition
 
+-- | creep types are generic, irrelevant of job or role
+data CreepType = CreepDrone | CreepNULL
+-- | creeps can take on many roles, depending on what type they are
 data Role = RoleHarvester | RoleNULL
+instance eqRoles ∷ Eq Role where
+  eq RoleNULL      RoleNULL      = true
+  eq RoleHarvester RoleHarvester = true
+  eq _             RoleNULL      = false
+  eq RoleNULL      _             = false
+roleList = [RoleHarvester, RoleNULL]
+instance encodeRole :: EncodeJson Role where
+    encodeJson RoleHarvester = encodeJson "RoleHarvester"
+    encodeJson RoleNULL      = encodeJson "RoleNULL"
+instance decodeRole :: DecodeJson Role where
+    decodeJson json = do
+      string <- decodeJson json
+      note (TypeMismatch "Role:") (roleFromStr string)
+roleFromStr :: String -> Maybe Role
+roleFromStr "RoleHarvester" = Just RoleHarvester
+roleFromStr "RoleNULL"      = Just RoleNULL
+roleFromStr _               = Nothing
+-- | jobs are like temporary roles
+data Job = JobBuild | JobNULL
+-- | the main loop control variable allow some control over state
+--   encoded straight into the json memory so we write some instances
 data LoopStatus = LoopGo | LoopStop | LoopNULL
 instance encodeLoopStatus :: EncodeJson LoopStatus where
     encodeJson LoopGo = encodeJson "loopGo"

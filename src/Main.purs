@@ -56,7 +56,7 @@ runCorpsegrindeer game memory LoopGo = do
     Just t0 -> log "tower code here"
     Nothing -> pure unit
 runCorpsegrindeer game memory LoopStop = do
-    -- TODO: reset memory here
+    -- TODO: reset memory here (garbage collect loopStatus variable)
     log "stopping loop"
 runCorpsegrindeer game memory LoopNULL = do
     log "null loop"

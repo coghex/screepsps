@@ -17,4 +17,14 @@ exports.createCreepImpl = function(structure){
       }
     }
 }
+exports.rawGetUtility = function(key){
+    return function(obj){
+        return obj.creeps[key].utility;
+    }
+}
 
+exports.rawGetRole = function(key){
+    return function(obj){
+        return obj.creeps[key].role;
+    }
+}
