@@ -13,6 +13,7 @@ to generate this file without the comments in this block.
 { name = "my-project"
 , dependencies =
   [ "argonaut-codecs"
+  , "argonaut-core"
   , "argonaut-generic"
   , "arrays"
   , "console"
@@ -25,6 +26,7 @@ to generate this file without the comments in this block.
   , "ordered-collections"
   , "partial"
   , "prelude"
+  , "tuples"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "test/**/*.purs" ]

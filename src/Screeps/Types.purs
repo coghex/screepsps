@@ -124,3 +124,5 @@ data TargetPosition a =
   TargetPt Int Int |
   TargetObj (RoomObject a) |
   TargetPos RoomPosition
+
+data Role = RoleHarvester | RoleNULL

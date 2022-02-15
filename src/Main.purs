@@ -20,7 +20,7 @@ main = do
 --  init <- Memory.get memory "utility"
   let spawn = F.lookup "Spawn1" (Game.spawns game)
   let creeps = Game.creeps game
-  processCreeps creeps memory
+  processCreeps creeps game memory
   -- TODO: finish tower code
   let tower = Game.getObjectById game (Id "TOWER_ID")
   case tower of

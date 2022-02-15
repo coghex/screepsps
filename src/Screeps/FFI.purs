@@ -3,6 +3,7 @@ import Prelude
 import Effect (Effect)
 import Data.Maybe (Maybe(Just, Nothing), isJust, fromJust, maybe)
 import Data.Function.Uncurried ( Fn3, runFn3 )
+import Screeps.Types
 
 foreign import unsafeField :: forall obj val. String -> obj -> val
 foreign import unsafeGetFieldEff :: forall obj val. String -> obj -> Effect val
@@ -11,6 +12,10 @@ foreign import unsafeDeleteFieldEff :: forall obj. String -> obj -> Effect Unit
 foreign import runThisEffFn0 :: forall this a. String -> this -> Effect a
 foreign import runThisEffFn1 :: forall this a b. String -> this -> a -> Effect b
 foreign import runThisEffFn2 :: forall this a b c. String -> this -> a -> b -> Effect c
+foreign import runThisEffFn3 :: forall this a b c d. String
+      -> this -> a -> b -> c -> Effect d
+foreign import runThisEffFn4 :: forall this a b c d e. String
+      -> this -> a -> b -> c -> d -> Effect e
 foreign import runThisFn0 :: forall this a. String -> this -> a
 foreign import runThisFn1 :: forall this a b. String -> this -> a -> b
 

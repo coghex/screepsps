@@ -57,6 +57,34 @@ exports.runThisEffFn2 = function(key){
     }
   }
 }
+exports.runThisEffFn3 = function(key){
+  return function(self){
+    return function(a){
+      return function(b){
+        return function(c){
+          return function(){
+            return self[key](a, b, c);
+          }
+        }
+      }
+    }
+  }
+}
+exports.runThisEffFn4 = function(key){
+  return function(self){
+    return function(a){
+      return function(b){
+        return function(c){
+          return function(d){
+            return function(){
+              return self[key](a, b, c, d);
+            }
+          }
+        }
+      }
+    }
+  }
+}
 exports.runThisFn0 = function(key){
   return function(self){
     return self[key]();
@@ -88,4 +116,17 @@ exports.toMaybeImpl = function (val, nothing, just){
         return just(val);
     }
 }
-
+// exports.rawSpawnCreep = function(){
+//   return function (self){
+//     return function(spawn){
+//       return function(parts){
+//         return function(name){
+//           return function(r){
+//               console.log("spawning creep...");
+//               return self.spawns[spawn].spawnCreep(parts,name,{memory: {role: r, utility: 1}});
+//           }
+//         }
+//       }
+//     }
+//   }
+// }
