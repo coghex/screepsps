@@ -728,15 +728,6 @@ var PS = {};
     };
   };
 
-  exports.all = function (f) {
-    return function (m) {
-      for (var k in m) {
-        if (hasOwnProperty.call(m, k) && !f(k)(m[k])) return false;
-      }
-      return true;
-    };
-  };
-
   exports.size = function (m) {
     var s = 0;
     for (var k in m) {
@@ -1181,11 +1172,6 @@ var PS = {};
       };
   };
   var lookup = Data_Function_Uncurried.runFn4($foreign["_lookup"])(Data_Maybe.Nothing.value)(Data_Maybe.Just.create);
-  var isEmpty = $foreign.all(function (v) {
-      return function (v1) {
-          return false;
-      };
-  });
   var insert = function (k) {
       return function (v) {
           return mutate(Foreign_Object_ST.poke(k)(v));
@@ -1352,7 +1338,6 @@ var PS = {};
           };
       };
   };
-  exports["isEmpty"] = isEmpty;
   exports["lookup"] = lookup;
   exports["toUnfoldable"] = toUnfoldable;
   exports["update"] = update;
@@ -1885,6 +1870,13 @@ var PS = {};
   var Data_Eq_Generic = $PS["Data.Eq.Generic"];
   var Data_Maybe = $PS["Data.Maybe"];
   var Data_Show = $PS["Data.Show"];
+  var RoleIdle = (function () {
+      function RoleIdle() {
+
+      };
+      RoleIdle.value = new RoleIdle();
+      return RoleIdle;
+  })();
   var RoleHarvester = (function () {
       function RoleHarvester() {
 
@@ -1955,10 +1947,13 @@ var PS = {};
           return Data_Show.show(Data_Show.showInt)(v);
       }
   };
-  var roleList = [ RoleHarvester.value, RoleNULL.value ];
+  var roleList = [ RoleIdle.value, RoleHarvester.value, RoleNULL.value ];
   var roleFromStr = function (v) {
       if (v === "RoleHarvester") {
           return new Data_Maybe.Just(RoleHarvester.value);
+      };
+      if (v === "RoleIdle") {
+          return new Data_Maybe.Just(RoleIdle.value);
       };
       if (v === "RoleNULL") {
           return new Data_Maybe.Just(RoleNULL.value);
@@ -1991,6 +1986,9 @@ var PS = {};
               if (v instanceof RoleNULL && v1 instanceof RoleNULL) {
                   return true;
               };
+              if (v instanceof RoleIdle && v1 instanceof RoleIdle) {
+                  return true;
+              };
               if (v instanceof RoleHarvester && v1 instanceof RoleHarvester) {
                   return true;
               };
@@ -2000,7 +1998,7 @@ var PS = {};
               if (v instanceof RoleNULL) {
                   return false;
               };
-              throw new Error("Failed pattern match at Screeps.Types (line 153, column 1 - line 157, column 41): " + [ v.constructor.name, v1.constructor.name ]);
+              return false;
           };
       }
   };
@@ -2009,13 +2007,16 @@ var PS = {};
   };
   var encodeRole = {
       encodeJson: function (v) {
+          if (v instanceof RoleIdle) {
+              return Data_Argonaut_Encode_Class.encodeJson(Data_Argonaut_Encode_Class.encodeJsonJString)("RoleIdle");
+          };
           if (v instanceof RoleHarvester) {
               return Data_Argonaut_Encode_Class.encodeJson(Data_Argonaut_Encode_Class.encodeJsonJString)("RoleHarvester");
           };
           if (v instanceof RoleNULL) {
               return Data_Argonaut_Encode_Class.encodeJson(Data_Argonaut_Encode_Class.encodeJsonJString)("RoleNULL");
           };
-          throw new Error("Failed pattern match at Screeps.Types (line 159, column 1 - line 161, column 51): " + [ v.constructor.name ]);
+          throw new Error("Failed pattern match at Screeps.Types (line 162, column 1 - line 165, column 51): " + [ v.constructor.name ]);
       }
   };
   var encodeLoopStatus = {
@@ -2029,7 +2030,7 @@ var PS = {};
           if (v instanceof LoopNULL) {
               return Data_Argonaut_Encode_Class.encodeJson(Data_Argonaut_Encode_Class.encodeJsonJString)("loopNULL");
           };
-          throw new Error("Failed pattern match at Screeps.Types (line 175, column 1 - line 178, column 48): " + [ v.constructor.name ]);
+          throw new Error("Failed pattern match at Screeps.Types (line 180, column 1 - line 183, column 48): " + [ v.constructor.name ]);
       }
   };
   var decodeRole = {
@@ -2049,6 +2050,7 @@ var PS = {};
   exports["TargetPt"] = TargetPt;
   exports["TargetObj"] = TargetObj;
   exports["TargetPos"] = TargetPos;
+  exports["RoleIdle"] = RoleIdle;
   exports["RoleHarvester"] = RoleHarvester;
   exports["RoleNULL"] = RoleNULL;
   exports["roleList"] = roleList;
@@ -2118,9 +2120,14 @@ var PS = {};
   "use strict";
 
   exports.spawnStoreCapacity = function(obj){
-      var ret = obj.store
+      var ret = obj.store;
       if (typeof ret !== 'undefined')
           return ret.getFreeCapacity(RESOURCE_ENERGY);
+  }
+  exports.spawnStoreEnergy = function(obj){
+      var ret = obj.store;
+      if (typeof ret !== 'undefined')
+          return ret[RESOURCE_ENERGY];
   }
 })(PS["Screeps.Spawn"] = PS["Screeps.Spawn"] || {});
 (function($PS) {
@@ -2130,6 +2137,7 @@ var PS = {};
   var exports = $PS["Screeps.Spawn"];
   var $foreign = $PS["Screeps.Spawn"];
   exports["spawnStoreCapacity"] = $foreign.spawnStoreCapacity;
+  exports["spawnStoreEnergy"] = $foreign.spawnStoreEnergy;
 })(PS);
 (function($PS) {
   // Generated by purs version 0.14.5
@@ -2158,10 +2166,8 @@ var PS = {};
   var Data_Array = $PS["Data.Array"];
   var Data_Eq = $PS["Data.Eq"];
   var Data_Maybe = $PS["Data.Maybe"];
-  var Data_Show = $PS["Data.Show"];
   var Data_Unit = $PS["Data.Unit"];
   var Effect = $PS["Effect"];
-  var Effect_Console = $PS["Effect.Console"];
   var Screeps_Const = $PS["Screeps.Const"];
   var Screeps_Creep = $PS["Screeps.Creep"];
   var Screeps_Room = $PS["Screeps.Room"];
@@ -2203,15 +2209,14 @@ var PS = {};
           throw new Error("Failed pattern match at Role.Harvester (line 25, column 5 - line 32, column 19): " + [ v.constructor.name ]);
       };
       var targets = Screeps_Room["find'"](Screeps_Room.room(creep))(Screeps_Const.find_structures)(hasFreeSpace);
-      return function __do() {
-          Effect_Console.log("num targets: " + Data_Show.show(Data_Show.showInt)(Data_Array.length(targets)))();
-          var v = findNearest(targets);
-          if (v instanceof Data_Maybe.Nothing) {
-              return Data_Unit.unit;
-          };
-          if (v instanceof Data_Maybe.Just) {
-              var $11 = Data_Array.length(targets) > 0;
-              if ($11) {
+      var v = findNearest(targets);
+      if (v instanceof Data_Maybe.Nothing) {
+          return Control_Applicative.pure(Effect.applicativeEffect)(Data_Unit.unit);
+      };
+      if (v instanceof Data_Maybe.Just) {
+          var $11 = Data_Array.length(targets) > 0;
+          if ($11) {
+              return function __do() {
                   var targ = Screeps_Creep.transferToStructure(creep)(v.value0)(Screeps_Const.resource_energy)();
                   var $12 = Data_Eq.eq(Screeps_Types.eqReturnCode)(targ)(Screeps_Const.err_not_in_range);
                   if ($12) {
@@ -2220,10 +2225,10 @@ var PS = {};
                   };
                   return Data_Unit.unit;
               };
-              return Data_Unit.unit;
           };
-          throw new Error("Failed pattern match at Role.Harvester (line 36, column 5 - line 44, column 23): " + [ v.constructor.name ]);
+          return Control_Applicative.pure(Effect.applicativeEffect)(Data_Unit.unit);
       };
+      throw new Error("Failed pattern match at Role.Harvester (line 36, column 5 - line 44, column 23): " + [ v.constructor.name ]);
   };
   exports["preformHarvester"] = preformHarvester;
 })(PS);
@@ -2354,27 +2359,22 @@ var PS = {};
   var Screeps_Const = $PS["Screeps.Const"];
   var Screeps_Game = $PS["Screeps.Game"];
   var Screeps_Memory = $PS["Screeps.Memory"];
+  var Screeps_Spawn = $PS["Screeps.Spawn"];
   var Screeps_Types = $PS["Screeps.Types"];                
   var spawnCreep = function (spawn) {
       return function (parts) {
           return function (name) {
-              return function (v) {
-                  if (v instanceof Screeps_Types.RoleHarvester) {
-                      return function __do() {
-                          var res = Screeps_Game.rawSpawnCreep(spawn)(parts)(name)(Screeps_Types.RoleHarvester.value)();
-                          if (res instanceof Data_Either.Left) {
-                              return Effect_Console.log(Data_Show.show(Screeps_Types.showReturnCode)(res.value0))();
-                          };
-                          if (res instanceof Data_Either.Right) {
-                              return Effect_Console.log(res.value0 + " created succesfully")();
-                          };
-                          throw new Error("Failed pattern match at Creep (line 180, column 5 - line 182, column 56): " + [ res.constructor.name ]);
+              return function (role) {
+                  return function __do() {
+                      var res = Screeps_Game.rawSpawnCreep(spawn)(parts)(name)(role)();
+                      if (res instanceof Data_Either.Left) {
+                          return Effect_Console.log(Data_Show.show(Screeps_Types.showReturnCode)(res.value0))();
                       };
+                      if (res instanceof Data_Either.Right) {
+                          return Effect_Console.log(res.value0 + " created succesfully")();
+                      };
+                      throw new Error("Failed pattern match at Creep (line 201, column 5 - line 203, column 56): " + [ res.constructor.name ]);
                   };
-                  if (v instanceof Screeps_Types.RoleNULL) {
-                      return Control_Applicative.pure(Effect.applicativeEffect)(Data_Unit.unit);
-                  };
-                  throw new Error("Failed pattern match at Creep (line 176, column 1 - line 177, column 32): " + [ spawn.constructor.name, parts.constructor.name, name.constructor.name, v.constructor.name ]);
               };
           };
       };
@@ -2395,9 +2395,12 @@ var PS = {};
               if (v2 instanceof Data_Either.Right) {
                   return v2.value0;
               };
-              throw new Error("Failed pattern match at Creep (line 58, column 16 - line 60, column 32): " + [ v2.constructor.name ]);
+              throw new Error("Failed pattern match at Creep (line 76, column 16 - line 78, column 32): " + [ v2.constructor.name ]);
           })();
           if (role instanceof Screeps_Types.RoleNULL) {
+              return Control_Applicative.pure(Effect.applicativeEffect)(Data_Unit.unit);
+          };
+          if (role instanceof Screeps_Types.RoleIdle) {
               return Control_Applicative.pure(Effect.applicativeEffect)(Data_Unit.unit);
           };
           if (role instanceof Screeps_Types.RoleHarvester) {
@@ -2408,9 +2411,9 @@ var PS = {};
               if (creep instanceof Data_Maybe.Just) {
                   return Role_Harvester.preformHarvester(creep.value0);
               };
-              throw new Error("Failed pattern match at Creep (line 55, column 5 - line 57, column 36): " + [ creep.constructor.name ]);
+              throw new Error("Failed pattern match at Creep (line 73, column 5 - line 75, column 36): " + [ creep.constructor.name ]);
           };
-          throw new Error("Failed pattern match at Creep (line 51, column 42 - line 57, column 36): " + [ role.constructor.name ]);
+          throw new Error("Failed pattern match at Creep (line 68, column 42 - line 75, column 36): " + [ role.constructor.name ]);
       };
   };
   var preformCreepsF = function (v) {
@@ -2426,7 +2429,7 @@ var PS = {};
               if (v2 instanceof Data_Maybe.Nothing) {
                   return [  ];
               };
-              throw new Error("Failed pattern match at Creep (line 46, column 19 - line 48, column 50): " + [ v2.constructor.name ]);
+              throw new Error("Failed pattern match at Creep (line 63, column 19 - line 65, column 50): " + [ v2.constructor.name ]);
           })();
           var creep$prime = (function () {
               var v2 = Data_Array.uncons(v1);
@@ -2436,7 +2439,7 @@ var PS = {};
               if (v2 instanceof Data_Maybe.Nothing) {
                   return new Data_Tuple.Tuple("NULL", Foreign_Object.empty);
               };
-              throw new Error("Failed pattern match at Creep (line 43, column 19 - line 45, column 68): " + [ v2.constructor.name ]);
+              throw new Error("Failed pattern match at Creep (line 60, column 19 - line 62, column 68): " + [ v2.constructor.name ]);
           })();
           return function __do() {
               preformCreep(v)(creep$prime)();
@@ -2456,7 +2459,7 @@ var PS = {};
                       if (creeps$prime instanceof Data_Either.Right) {
                           return creeps$prime.value0;
                       };
-                      throw new Error("Failed pattern match at Creep (line 34, column 33 - line 36, column 31): " + [ creeps$prime.constructor.name ]);
+                      throw new Error("Failed pattern match at Creep (line 51, column 33 - line 53, column 31): " + [ creeps$prime.constructor.name ]);
                   })());
                   return preformCreepsF(hash)(creeps)();
               };
@@ -2475,7 +2478,7 @@ var PS = {};
       if (v instanceof Data_Maybe.Just) {
           return Data_Maybe.Just.create(Data_Argonaut_Encode_Class.encodeJson(Data_Argonaut_Encode_Class.encodeJsonInt)(v.value0));
       };
-      throw new Error("Failed pattern match at Creep (line 122, column 1 - line 122, column 46): " + [ v.constructor.name ]);
+      throw new Error("Failed pattern match at Creep (line 140, column 1 - line 140, column 46): " + [ v.constructor.name ]);
   };
   var findInd = function ($copy_v) {
       return function ($copy_v1) {
@@ -2497,7 +2500,7 @@ var PS = {};
                       if (v2 instanceof Data_Maybe.Nothing) {
                           return Screeps_Types.RoleNULL.value;
                       };
-                      throw new Error("Failed pattern match at Creep (line 131, column 18 - line 133, column 55): " + [ v2.constructor.name ]);
+                      throw new Error("Failed pattern match at Creep (line 149, column 18 - line 151, column 55): " + [ v2.constructor.name ]);
                   })();
                   var array$prime = (function () {
                       var v2 = Data_Array.uncons(v);
@@ -2507,10 +2510,10 @@ var PS = {};
                       if (v2 instanceof Data_Maybe.Nothing) {
                           return [  ];
                       };
-                      throw new Error("Failed pattern match at Creep (line 134, column 18 - line 136, column 49): " + [ v2.constructor.name ]);
+                      throw new Error("Failed pattern match at Creep (line 152, column 18 - line 154, column 49): " + [ v2.constructor.name ]);
                   })();
-                  var $70 = Data_Eq.eq(Screeps_Types.eqRoles)(v1)(val$prime);
-                  if ($70) {
+                  var $66 = Data_Eq.eq(Screeps_Types.eqRoles)(v1)(val$prime);
+                  if ($66) {
                       $tco_done = true;
                       return n;
                   };
@@ -2528,7 +2531,36 @@ var PS = {};
   };
   var createCreep = function (spawn) {
       return function (name) {
-          return spawnCreep(spawn)([ Screeps_Const.pWork, Screeps_Const.pCarry, Screeps_Const.pMove ])(name)(Screeps_Types.RoleHarvester.value);
+          return function (v) {
+              if (v === 1) {
+                  return spawnCreep(spawn)([ Screeps_Const.pWork, Screeps_Const.pCarry, Screeps_Const.pMove, Screeps_Const.pMove ])(name)(Screeps_Types.RoleIdle.value);
+              };
+              return spawnCreep(spawn)([ Screeps_Const.pWork, Screeps_Const.pWork, Screeps_Const.pCarry, Screeps_Const.pMove ])(name)(Screeps_Types.RoleIdle.value);
+          };
+      };
+  };
+  var manageCreeps = function (hash) {
+      return function (game) {
+          return function (mem) {
+              var spawnslist = Screeps_Game.spawns(game);
+              var spawn1 = Foreign_Object.lookup("Spawn1")(spawnslist);
+              if (spawn1 instanceof Data_Maybe.Nothing) {
+                  return Control_Applicative.pure(Effect.applicativeEffect)(Data_Unit.unit);
+              };
+              if (spawn1 instanceof Data_Maybe.Just) {
+                  var numCreeps = Foreign_Object.size(hash);
+                  var availableEnergy = Screeps_Spawn.spawnStoreEnergy(spawn1.value0);
+                  var $71 = availableEnergy > 250 && numCreeps < 3;
+                  if ($71) {
+                      return function __do() {
+                          Effect_Console.log("creating level 1 creep...")();
+                          return createCreep(spawn1.value0)("Creep1")(1)();
+                      };
+                  };
+                  return Control_Applicative.pure(Effect.applicativeEffect)(Data_Unit.unit);
+              };
+              throw new Error("Failed pattern match at Creep (line 36, column 3 - line 44, column 42): " + [ spawn1.constructor.name ]);
+          };
       };
   };
   var calcRoleScore = function (creeps) {
@@ -2536,12 +2568,15 @@ var PS = {};
           if (v instanceof Screeps_Types.RoleNULL) {
               return 0;
           };
+          if (v instanceof Screeps_Types.RoleIdle) {
+              return 1;
+          };
           if (v instanceof Screeps_Types.RoleHarvester) {
               var harvs = numberOfRole(Screeps_Types.RoleHarvester.value)(creeps);
               var score = Data_Int.quot(1000)(harvs + 1 | 0);
               return score;
           };
-          throw new Error("Failed pattern match at Creep (line 140, column 1 - line 140, column 54): " + [ creeps.constructor.name, v.constructor.name ]);
+          throw new Error("Failed pattern match at Creep (line 158, column 1 - line 158, column 54): " + [ creeps.constructor.name, v.constructor.name ]);
       };
   };
   var bestRole = function ($copy_v) {
@@ -2570,7 +2605,7 @@ var PS = {};
                           if (v3 instanceof Data_Maybe.Nothing) {
                               return [  ];
                           };
-                          throw new Error("Failed pattern match at Creep (line 163, column 20 - line 165, column 34): " + [ v3.constructor.name ]);
+                          throw new Error("Failed pattern match at Creep (line 182, column 20 - line 184, column 34): " + [ v3.constructor.name ]);
                       })();
                       var score$prime = (function () {
                           var v3 = Data_Array.uncons(v);
@@ -2580,7 +2615,7 @@ var PS = {};
                           if (v3 instanceof Data_Maybe.Nothing) {
                               return 0;
                           };
-                          throw new Error("Failed pattern match at Creep (line 166, column 20 - line 168, column 33): " + [ v3.constructor.name ]);
+                          throw new Error("Failed pattern match at Creep (line 185, column 20 - line 187, column 33): " + [ v3.constructor.name ]);
                       })();
                       var roles$prime = (function () {
                           var v3 = Data_Array.uncons(v1);
@@ -2590,7 +2625,7 @@ var PS = {};
                           if (v3 instanceof Data_Maybe.Nothing) {
                               return [  ];
                           };
-                          throw new Error("Failed pattern match at Creep (line 157, column 20 - line 159, column 34): " + [ v3.constructor.name ]);
+                          throw new Error("Failed pattern match at Creep (line 176, column 20 - line 178, column 34): " + [ v3.constructor.name ]);
                       })();
                       var role$prime = (function () {
                           var v3 = Data_Array.uncons(v1);
@@ -2600,10 +2635,10 @@ var PS = {};
                           if (v3 instanceof Data_Maybe.Nothing) {
                               return Screeps_Types.RoleNULL.value;
                           };
-                          throw new Error("Failed pattern match at Creep (line 160, column 20 - line 162, column 40): " + [ v3.constructor.name ]);
+                          throw new Error("Failed pattern match at Creep (line 179, column 20 - line 181, column 40): " + [ v3.constructor.name ]);
                       })();
-                      var $93 = score$prime > v2;
-                      if ($93) {
+                      var $95 = score$prime > v2;
+                      if ($95) {
                           $tco_var_v = scores$prime;
                           $tco_var_v1 = roles$prime;
                           $tco_var_v2 = score$prime;
@@ -2637,7 +2672,7 @@ var PS = {};
                           if (v instanceof Data_Either.Right) {
                               return v.value0;
                           };
-                          throw new Error("Failed pattern match at Creep (line 111, column 20 - line 113, column 36): " + [ v.constructor.name ]);
+                          throw new Error("Failed pattern match at Creep (line 129, column 20 - line 131, column 36): " + [ v.constructor.name ]);
                       })();
                       var rol = (function () {
                           var v = Data_Argonaut_Decode_Combinators.getField(Screeps_Types.decodeRole)(val0)("role");
@@ -2647,7 +2682,7 @@ var PS = {};
                           if (v instanceof Data_Either.Right) {
                               return v.value0;
                           };
-                          throw new Error("Failed pattern match at Creep (line 114, column 20 - line 116, column 36): " + [ v.constructor.name ]);
+                          throw new Error("Failed pattern match at Creep (line 132, column 20 - line 134, column 36): " + [ v.constructor.name ]);
                       })();
                       var alt = bestRole(scores)(roles)(0)(Screeps_Types.RoleNULL.value);
                       var ind = findInd(roles)(alt)(0);
@@ -2678,21 +2713,6 @@ var PS = {};
   var processCreeps = function (hash) {
       return function (game) {
           return function (mem) {
-              var $100 = Foreign_Object.isEmpty(hash);
-              if ($100) {
-                  return function __do() {
-                      Effect_Console.log("creating initial creep")();
-                      var spawnslist = Screeps_Game.spawns(game);
-                      var spawn1 = Foreign_Object.lookup("Spawn1")(spawnslist);
-                      if (spawn1 instanceof Data_Maybe.Nothing) {
-                          return Effect_Console.log("fatal error: no Spawn1")();
-                      };
-                      if (spawn1 instanceof Data_Maybe.Just) {
-                          return createCreep(spawn1.value0)("Creep1")();
-                      };
-                      throw new Error("Failed pattern match at Creep (line 76, column 5 - line 80, column 40): " + [ spawn1.constructor.name ]);
-                  };
-              };
               return function __do() {
                   var creeputl = Screeps_Memory.getCreepsUtl();
                   var creeps$prime = Screeps_Memory.get(Data_Argonaut_Decode_Class.decodeForeignObject(Data_Argonaut_Decode_Class.decodeForeignObject(Data_Argonaut_Decode_Class.decodeJsonJson)))(mem)("creeps")();
@@ -2703,18 +2723,18 @@ var PS = {};
                       if (creeps$prime instanceof Data_Either.Right) {
                           return creeps$prime.value0;
                       };
-                      throw new Error("Failed pattern match at Creep (line 87, column 16 - line 89, column 38): " + [ creeps$prime.constructor.name ]);
+                      throw new Error("Failed pattern match at Creep (line 105, column 16 - line 107, column 38): " + [ creeps$prime.constructor.name ]);
                   })();
                   var utl0 = Data_Array.foldl(Data_Semiring.add(Data_Semiring.semiringInt))(0)(creeputl);
                   var roleScores = Data_Functor.map(Data_Functor.functorArray)(calcRoleScore(creeps))(Screeps_Types.roleList);
                   var newCreeps = processCreep(creeps)(utl0)(roleScores)(Screeps_Types.roleList);
                   Screeps_Memory.set(Data_Argonaut_Encode_Class.encodeForeignObject(Data_Argonaut_Encode_Class.encodeForeignObject(Data_Argonaut_Encode_Class.encodeJsonJson)))(mem)("creeps")(newCreeps)();
-                  Screeps_Memory.set(Data_Argonaut_Encode_Class.encodeJsonInt)(mem)("utility")(utl0)();
-                  return Effect_Console.log("U(n-1): " + (Data_Show.show(Data_Show.showInt)(utl0) + ", U(n): "))();
+                  return Screeps_Memory.set(Data_Argonaut_Encode_Class.encodeJsonInt)(mem)("utility")(utl0)();
               };
           };
       };
   };
+  exports["manageCreeps"] = manageCreeps;
   exports["preformCreeps"] = preformCreeps;
   exports["processCreeps"] = processCreeps;
 })(PS);
@@ -2740,6 +2760,7 @@ var PS = {};
               if (v instanceof Screeps_Types.LoopGo) {
                   var creeps = Screeps_Game.creeps(game);
                   return function __do() {
+                      Creep.manageCreeps(creeps)(game)(memory)();
                       Creep.processCreeps(creeps)(game)(memory)();
                       Creep.preformCreeps(creeps)(game)(memory)();
                       var tower = Screeps_Game.getObjectById(game)("TOWER_ID");
@@ -2749,7 +2770,7 @@ var PS = {};
                       if (tower instanceof Data_Maybe.Nothing) {
                           return Data_Unit.unit;
                       };
-                      throw new Error("Failed pattern match at Main (line 58, column 3 - line 60, column 25): " + [ tower.constructor.name ]);
+                      throw new Error("Failed pattern match at Main (line 60, column 3 - line 62, column 25): " + [ tower.constructor.name ]);
                   };
               };
               if (v instanceof Screeps_Types.LoopStop) {

@@ -57,3 +57,4 @@ rawSpawnCreepAs ∷ Spawn
 rawSpawnCreepAs spawn parts name role
   = createCreepImpl spawn parts role' Left Right
   where role' = encodeJson role
+

@@ -49,6 +49,8 @@ initCorpsegrinder memory status = do
 runCorpsegrindeer ∷ GameGlobal -> Memory.MemoryGlobal -> LoopStatus -> Effect Unit
 runCorpsegrindeer game memory LoopGo = do
   let creeps = Game.creeps game
+  -- manage the creep population
+  manageCreeps creeps game memory
   -- change rolls based on game state
   processCreeps creeps game memory
   -- preform roles for each creep

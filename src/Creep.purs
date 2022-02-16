@@ -24,7 +24,24 @@ import Screeps.Creep as Creep
 import Screeps.Memory as Memory
 import Screeps.Game as Game
 import Screeps.Const
+import Screeps.Spawn ( spawnStore, spawnStoreEnergy )
 import Role.Harvester (preformHarvester)
+
+-- | creep population is managed in this function
+manageCreeps ∷ F.Object Creep → GameGlobal
+  → Memory.MemoryGlobal → Effect Unit
+manageCreeps hash game mem = do
+  let spawnslist      = Game.spawns game
+      spawn1          = F.lookup "Spawn1" spawnslist
+  case spawn1 of
+    Nothing → pure unit
+    Just s1 → if availableEnergy > 250 && numCreeps < 3 then do
+    -- name "Creep1" here is currently just a placeholder
+                log "creating level 1 creep..."
+                createCreep s1 "Creep1" 1
+              else pure unit
+      where availableEnergy = spawnStoreEnergy s1
+            numCreeps       = F.size hash
 
 -- | once each creep knows their role they come here to split off into action
 preformCreeps ∷ F.Object Creep → GameGlobal
@@ -50,6 +67,7 @@ preformCreep ∷ F.Object Creep → Tuple String (F.Object Json) → Effect Unit
 preformCreep _      (Tuple "NULL" val) = pure unit
 preformCreep creeps (Tuple key    val) = case role of
   RoleNULL → pure unit
+  RoleIdle → pure unit
   RoleHarvester → do
     let creep = F.lookup key creeps
     case creep of
@@ -68,19 +86,19 @@ processCreeps ∷ F.Object Creep → GameGlobal
 processCreeps hash game mem = do
   -- before making any descisions we check to see if we even
   -- have creeps, the algorithm needs at least one
-  if F.isEmpty hash then do
-    log "creating initial creep"
-    let spawnslist = Game.spawns game
-        -- TODO: keep track of spawns, get rid of this lookup
-        spawn1     = F.lookup "Spawn1" spawnslist
-    case spawn1 of
-    -- TODO: figure out if spawn1 is always present 
-      Nothing → log "fatal error: no Spawn1"
-      -- first creep will get a random name, creep1 is the index
-      Just s1 → createCreep s1 "Creep1"
-  -- this is the main algorithm, takes the old utility function and
-  -- goes through each creep seeing if they can improve the situation
-  else do
+--  if F.isEmpty hash then do
+--    log "creating initial creep"
+--    let spawnslist = Game.spawns game
+--        -- TODO: keep track of spawns, get rid of this lookup
+--        spawn1     = F.lookup "Spawn1" spawnslist
+--    case spawn1 of
+--    -- TODO: figure out if spawn1 is always present 
+--      Nothing → log "fatal error: no Spawn1"
+--      -- first creep will get a random name, creep1 is the index
+--      Just s1 → createCreep s1 "Creep1" 1
+--  -- this is the main algorithm, takes the old utility function and
+--  -- goes through each creep seeing if they can improve the situation
+--  else do
     -- returns creep utilities as array of ints in the same order as the index
     creeputl ← Memory.getCreepsUtl
     creeps'  ← Memory.get mem "creeps"
@@ -95,7 +113,7 @@ processCreeps hash game mem = do
         newCreeps = processCreep creeps utl0 roleScores roleList
     Memory.set mem "creeps" newCreeps
     Memory.set mem "utility" utl0
-    log $ "U(n-1): " <> show utl0 <> ", U(n): "
+--    log $ "U(n-1): " <> show utl0 <> ", U(n): "
 
 -- | goes through each individual creep to see if they can increae utility
 processCreep ∷ F.Object (F.Object Json) → Int → Array Int → Array Role → F.Object (F.Object Json)
@@ -139,6 +157,7 @@ findInd array val n =
 -- | finds the score for a given role for all the creeps at once
 calcRoleScore ∷ F.Object (F.Object Json) → Role → Int
 calcRoleScore creeps RoleNULL      = 0
+calcRoleScore creeps RoleIdle      = 1
 calcRoleScore creeps RoleHarvester = score
   where score = 1000 `quot` (harvs + 1)
         harvs = numberOfRole RoleHarvester creeps
@@ -168,16 +187,17 @@ bestRole scores roles score role = if (score' > score) then bestRole scores' rol
                      Nothing → 0
 
 -- | basic creep creation function
-createCreep ∷ Spawn → String → Effect Unit
-createCreep spawn name = do
-    spawnCreep spawn [pWork,pCarry,pMove] name RoleHarvester
+createCreep ∷ Spawn → String → Int → Effect Unit
+createCreep spawn name 1 = do
+    spawnCreep spawn [pWork,pCarry,pMove,pMove] name RoleIdle
+createCreep spawn name level = do
+    spawnCreep spawn [pWork,pWork,pCarry,pMove] name RoleIdle
 
 -- | pattern match helper function
 spawnCreep ∷ Spawn → Array BodyPartType
   → String → Role → Effect Unit
-spawnCreep spawn parts name RoleHarvester = do
-    res ← Game.rawSpawnCreep spawn parts name RoleHarvester
+spawnCreep spawn parts name role = do
+    res ← Game.rawSpawnCreep spawn parts name role
     case res of
         Left  err → log $ show err
         Right str → log $ str <> " created succesfully"
-spawnCreep spawn parts name RoleNULL      = pure unit

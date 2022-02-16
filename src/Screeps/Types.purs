@@ -146,17 +146,21 @@ newtype FindType a = FindType Int
 -- | creep types are generic, irrelevant of job or role
 data CreepType = CreepDrone | CreepNULL
 -- | creeps can take on many roles, depending on what type they are
-data Role = RoleHarvester | RoleNULL
+data Role = RoleIdle | RoleHarvester | RoleNULL
 instance showRole ∷ Show Role where
   show RoleHarvester = "RoleHarvester"
+  show RoleIdle      = "RoleIdle"
   show RoleNULL      = "RoleNULL"
 instance eqRoles ∷ Eq Role where
   eq RoleNULL      RoleNULL      = true
+  eq RoleIdle      RoleIdle      = true
   eq RoleHarvester RoleHarvester = true
   eq _             RoleNULL      = false
   eq RoleNULL      _             = false
-roleList = [RoleHarvester, RoleNULL] ∷ Array Role
+  eq _             _             = false
+roleList = [RoleIdle, RoleHarvester, RoleNULL] ∷ Array Role
 instance encodeRole :: EncodeJson Role where
+  encodeJson RoleIdle      = encodeJson "RoleIdle"
   encodeJson RoleHarvester = encodeJson "RoleHarvester"
   encodeJson RoleNULL      = encodeJson "RoleNULL"
 instance decodeRole :: DecodeJson Role where
@@ -165,6 +169,7 @@ instance decodeRole :: DecodeJson Role where
     note (TypeMismatch "Role:") (roleFromStr string)
 roleFromStr :: String -> Maybe Role
 roleFromStr "RoleHarvester" = Just RoleHarvester
+roleFromStr "RoleIdle"      = Just RoleIdle
 roleFromStr "RoleNULL"      = Just RoleNULL
 roleFromStr _               = Nothing
 -- | jobs are like temporary roles

@@ -32,7 +32,7 @@ preformHarvester creep = do
     else pure unit
   else do
     let targets = find' (room creep) find_structures hasFreeSpace
-    log $ "num targets: " <> (show (length targets))
+--    log $ "num targets: " <> (show (length targets))
     case (findNearest targets) of
       Nothing → pure unit
       Just nearestTarget → if (length targets) > 0 then do
