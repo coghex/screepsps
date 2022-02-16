@@ -4,7 +4,9 @@ import Prelude
 import Effect (Effect)
 import Data.Maybe (Maybe)
 import Screeps.Types
-import Screeps.FFI ( unsafeField, runThisFn1, runThisEffFn1, runThisEffFn2, toMaybe )
+import Screeps.FFI ( unsafeField, runThisFn1
+                   , runThisEffFn1, runThisEffFn2
+                   , runThisEffFn3, toMaybe )
 foreign import data CreepCargo :: Type
 foreign import totalAmtCarrying :: Creep -> Int
 
@@ -102,3 +104,15 @@ moveTo :: forall a. Creep -> TargetPosition a -> Effect ReturnCode
 moveTo creep (TargetPt  x y) = runThisEffFn2 "moveTo" creep x y
 moveTo creep (TargetPos pos) = runThisEffFn1 "moveTo" creep pos
 moveTo creep (TargetObj obj) = runThisEffFn1 "moveTo" creep obj
+
+transferToCreep :: Creep -> Creep -> ResourceType -> Int -> Effect ReturnCode
+transferToCreep = runThisEffFn3 "transfer"
+
+transferToStructure :: forall a. Creep -> Structure a -> ResourceType -> Effect ReturnCode
+transferToStructure = runThisEffFn2 "transfer"
+
+transferAmtToStructure :: forall a. Creep -> Structure a -> ResourceType -> Int -> Effect ReturnCode
+transferAmtToStructure = runThisEffFn3 "transfer"
+
+creepStore ∷ Creep → Store
+creepStore = unsafeField "store"

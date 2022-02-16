@@ -68,3 +68,51 @@ foreign import structure_lab :: StructureType
 foreign import structure_terminal :: StructureType
 foreign import structure_container :: StructureType
 foreign import structure_nuker :: StructureType
+foreign import resource_energy :: ResourceType
+foreign import resource_power :: ResourceType
+
+foreign import resource_hydrogen :: ResourceType
+foreign import resource_oxygen :: ResourceType
+foreign import resource_utrium :: ResourceType
+foreign import resource_lemergium :: ResourceType
+foreign import resource_keanium :: ResourceType
+foreign import resource_zynthium :: ResourceType
+foreign import resource_catalyst :: ResourceType
+foreign import resource_ghodium :: ResourceType
+
+foreign import resource_hydroxide :: ResourceType
+foreign import resource_zynthium_keanite :: ResourceType
+foreign import resource_utrium_lemergite :: ResourceType
+
+foreign import resource_utrium_hydride :: ResourceType
+foreign import resource_utrium_oxide :: ResourceType
+foreign import resource_keanium_hydride :: ResourceType
+foreign import resource_keanium_oxide :: ResourceType
+foreign import resource_lemergium_hydride :: ResourceType
+foreign import resource_lemergium_oxide :: ResourceType
+foreign import resource_zynthium_hydride :: ResourceType
+foreign import resource_zynthium_oxide :: ResourceType
+foreign import resource_ghodium_hydride :: ResourceType
+foreign import resource_ghodium_oxide :: ResourceType
+
+foreign import resource_utrium_acid :: ResourceType
+foreign import resource_utrium_alkalide :: ResourceType
+foreign import resource_keanium_acid :: ResourceType
+foreign import resource_keanium_alkalide :: ResourceType
+foreign import resource_lemergium_acid :: ResourceType
+foreign import resource_lemergium_alkalide :: ResourceType
+foreign import resource_zynthium_acid :: ResourceType
+foreign import resource_zynthium_alkalide :: ResourceType
+foreign import resource_ghodium_acid :: ResourceType
+foreign import resource_ghodium_alkalide :: ResourceType
+
+foreign import resource_catalyzed_utrium_acid :: ResourceType
+foreign import resource_catalyzed_utrium_alkalide :: ResourceType
+foreign import resource_catalyzed_keanium_acid :: ResourceType
+foreign import resource_catalyzed_keanium_alkalide :: ResourceType
+foreign import resource_catalyzed_lemergium_acid :: ResourceType
+foreign import resource_catalyzed_lemergium_alkalide :: ResourceType
+foreign import resource_catalyzed_zynthium_acid :: ResourceType
+foreign import resource_catalyzed_zynthium_alkalide :: ResourceType
+foreign import resource_catalyzed_ghodium_acid :: ResourceType
+foreign import resource_catalyzed_ghodium_alkalide :: ResourceType

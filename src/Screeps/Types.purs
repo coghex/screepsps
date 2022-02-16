@@ -24,14 +24,17 @@ foreign import data RawCreep :: Type
 foreign import data RawMineral :: Type
 foreign import data RawResource :: Type
 foreign import data RawSource :: Type
+foreign import data RawStorage :: Type
 foreign import data RawFlag :: Type
 foreign import data RawNuke :: Type
 foreign import data RoomPosition :: Type
+foreign import data Store ∷ Type
 
 type RoomObject     a = RawRoomObject  a
 type Structure      a = RoomObject     (RawStructure a)
 type OwnedStructure a = Structure      (RawOwnedStructure a)
 type ConstructionSite = RoomObject     RawConstructionSite
+type Storage          = OwnedStructure RawStorage
 type Spawn            = OwnedStructure RawSpawn
 type Tower            = OwnedStructure RawTower
 type Creep            = RoomObject     RawCreep
