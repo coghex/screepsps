@@ -90,11 +90,19 @@ exports.runThisFn0 = function(key){
     return self[key]();
   }
 }
-
 exports.runThisFn1 = function(key){
   return function(self){
     return function(a){
       return self[key](a);
+    }
+  }
+}
+exports.runThisFn2 = function(key){
+  return function(self){
+    return function(a){
+      return function(b){
+        return self[key](a,b);
+      }
     }
   }
 }

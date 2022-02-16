@@ -49,7 +49,10 @@ initCorpsegrinder memory status = do
 runCorpsegrindeer ∷ GameGlobal -> Memory.MemoryGlobal -> LoopStatus -> Effect Unit
 runCorpsegrindeer game memory LoopGo = do
   let creeps = Game.creeps game
+  -- change rolls based on game state
   processCreeps creeps game memory
+  -- preform roles for each creep
+  preformCreeps creeps game memory
   -- TODO: finish tower code
   let tower = Game.getObjectById game (Id "TOWER_ID")
   case tower of

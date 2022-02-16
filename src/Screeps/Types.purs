@@ -14,6 +14,7 @@ import Data.Argonaut.Decode.Generic (genericDecodeJson)
 
 foreign import data GameGlobal :: Type
 foreign import data RawRoomObject :: Type -> Type
+foreign import data Room :: Type
 foreign import data RawStructure :: Type -> Type
 foreign import data RawOwnedStructure :: Type -> Type
 foreign import data RawConstructionSite :: Type
@@ -23,6 +24,8 @@ foreign import data RawCreep :: Type
 foreign import data RawMineral :: Type
 foreign import data RawResource :: Type
 foreign import data RawSource :: Type
+foreign import data RawFlag :: Type
+foreign import data RawNuke :: Type
 foreign import data RoomPosition :: Type
 
 type RoomObject     a = RawRoomObject  a
@@ -35,6 +38,8 @@ type Creep            = RoomObject     RawCreep
 type Mineral          = RoomObject     RawMineral
 type Resource         = RoomObject     RawResource
 type Source           = RoomObject     RawSource
+type Flag             = RoomObject     RawFlag
+type Nuke             = RoomObject     RawNuke
 
 type Path = Array PathStep
 
@@ -118,6 +123,11 @@ instance eqReturnCode :: Eq ReturnCode where eq = genericEq
 instance showReturnCode :: Show ReturnCode where
   show (ReturnCode n) = show n
 
+newtype StructureType = StructureType String
+derive instance genericStructureType :: Generic StructureType _
+instance eqStructureType :: Eq StructureType where eq = genericEq
+instance showStructureType :: Show StructureType where show = genericShow
+
 newtype Direction = Direction Int
 derive instance genericDirection :: Generic Direction _
 instance eqDirection :: Eq Direction where eq = genericEq
@@ -127,6 +137,8 @@ data TargetPosition a =
   TargetPt Int Int |
   TargetObj (RoomObject a) |
   TargetPos RoomPosition
+type FilterFn a = a -> Boolean
+newtype FindType a = FindType Int
 
 -- | creep types are generic, irrelevant of job or role
 data CreepType = CreepDrone | CreepNULL

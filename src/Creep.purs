@@ -24,6 +24,41 @@ import Screeps.Creep as Creep
 import Screeps.Memory as Memory
 import Screeps.Game as Game
 import Screeps.Const
+import Role.Harvester (preformHarvester)
+
+-- | once each creep knows their role they come here to split off into action
+preformCreeps ∷ F.Object Creep → GameGlobal
+  → Memory.MemoryGlobal → Effect Unit
+preformCreeps hash game mem = do
+  creeps' ← Memory.get mem "creeps"
+  let creeps = F.toUnfoldable $ case creeps' of
+                 Left err → F.empty
+                 Right c0 → c0
+  preformCreepsF hash creeps
+preformCreepsF ∷ F.Object Creep → Array (Tuple String (F.Object Json)) → Effect Unit
+preformCreepsF _      []     = pure unit
+preformCreepsF fobj creeps = do
+  preformCreep fobj creep'
+  preformCreepsF fobj creeps'
+  where creep'  = case uncons creeps of
+                    Just {head: c, tail: _}  → c
+                    Nothing                  → Tuple "NULL" F.empty
+        creeps' = case uncons creeps of
+                    Just {head: _, tail: cs} → cs
+                    Nothing                  → []
+preformCreep ∷ F.Object Creep → Tuple String (F.Object Json) → Effect Unit
+preformCreep _      (Tuple "NULL" val) = pure unit
+preformCreep creeps (Tuple key    val) = case role of
+  RoleNULL → pure unit
+  RoleHarvester → do
+    let creep = F.lookup key creeps
+    case creep of
+      Nothing → pure unit
+      Just c0 → preformHarvester c0
+  where role = case getField val "role" of
+                  Left err → RoleNULL
+                  Right r0 → r0
+
 
 -- | converts foreign hash table to purescript array, gets the current
 --   utility score, iterate though each creep changing their behavior
