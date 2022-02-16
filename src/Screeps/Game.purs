@@ -8,10 +8,12 @@ import Screeps.FFI ( runThisEffFn0, runThisFn1
                    , unsafeField, toMaybe )
 import Data.Maybe ( Maybe )
 import Data.Either ( Either(..) )
+import Data.Argonaut.Core ( Json )
+import Data.Argonaut.Encode ( encodeJson )
 import Data.Map as Map
 
 foreign import getGameGlobal   ∷ Effect GameGlobal
-foreign import createCreepImpl ∷ Spawn → Array BodyPartType
+foreign import createCreepImpl ∷ Spawn → Array BodyPartType → Json
     → (ReturnCode → Either ReturnCode String)
     → (String     → Either ReturnCode String)
     → Effect (Either ReturnCode String)
@@ -44,12 +46,14 @@ getRole ∷ Memory.MemoryGlobal → String → Role
 getRole mem key = rawGetRole key mem
 
 rawSpawnCreep ∷ Spawn → Array BodyPartType → String
-  → String → Effect (Either ReturnCode String)
+  → Role → Effect (Either ReturnCode String)
 rawSpawnCreep spawn parts name role
-  = createCreepImpl spawn parts Left Right
+  = createCreepImpl spawn parts role' Left Right
+  where role' = encodeJson role
 
 rawSpawnCreepAs ∷ Spawn 
-  → Array BodyPartType → String → String
+  → Array BodyPartType → String → Role
   → Effect (Either ReturnCode String)
 rawSpawnCreepAs spawn parts name role
-  = createCreepImpl spawn parts Left Right
+  = createCreepImpl spawn parts role' Left Right
+  where role' = encodeJson role

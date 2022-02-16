@@ -7,6 +7,7 @@ import Data.Argonaut.Core ( Json )
 import Data.Argonaut.Decode (class DecodeJson, decodeJson, JsonDecodeError)
 import Data.Argonaut.Encode (class EncodeJson, encodeJson)
 import Data.Either (Either)
+import Foreign.Object as F
 
 foreign import data MemoryGlobal :: Type
 foreign import getMemoryGlobal :: Effect MemoryGlobal

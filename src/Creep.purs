@@ -2,7 +2,7 @@ module Creep where
 import Prelude
 import Effect (Effect)
 import Effect.Console (log)
-import Data.Array (null, length, uncons, filter, foldl)
+import Data.Array (null, length, uncons, filter, foldl, index)
 import Data.Array.Partial (head, tail)
 import Partial.Unsafe (unsafePartial)
 import Data.Argonaut.Core ( Json, caseJsonArray, stringify, jsonEmptyString )
@@ -57,22 +57,61 @@ processCreeps hash game mem = do
         roleScores = map (calcRoleScore creeps) roleList
     -- new utility is just the sum of everyone's utility
     -- returns the best alternative role
-        alternative = bestRole roleScores roleList 0 RoleNULL
+        newCreeps = processCreep creeps utl0 roleScores roleList
+    Memory.set mem "creeps" newCreeps
     Memory.set mem "utility" utl0
     log $ "U(n-1): " <> show utl0 <> ", U(n): "
-            <> (show alternative)
+
+-- | goes through each individual creep to see if they can increae utility
+processCreep ∷ F.Object (F.Object Json) → Int → Array Int → Array Role → F.Object (F.Object Json)
+processCreep creeps utl0 scores roles
+  = F.mapWithKey (processCreepF utl0 scores roles) creeps
+processCreepF ∷ Int → Array Int → Array Role → String → F.Object Json → F.Object Json
+processCreepF utl0 scores roles key val0 = val2
+-- this is a dumb way to do this, find the index just to index utl
+-- but i dont want to use purescript tuples since i dont like them
+  where val2     = F.update (\_ → newUtl) "utility" val1
+        val1     = F.update (\_ → newRole) "role" val0
+        alt      = bestRole scores roles 0 RoleNULL
+        utl      = case getField val0 "utility" of
+                      Left err → -1
+                      Right u0 → u0
+        rol      = case getField val0 "role" of
+                      Left err → RoleNULL
+                      Right r0 → r0
+        ind      = findInd roles alt 0
+        newUtl'  = scores `index` ind
+        newUtl   = fromMaybeToMaybeJson newUtl'
+        newRole  = Just $ encodeJson alt
+-- | we need to always return something or foreign.update will delete things
+fromMaybeToMaybeJson ∷ Maybe Int → Maybe Json
+fromMaybeToMaybeJson (Nothing) = Just $ encodeJson (-1)
+fromMaybeToMaybeJson (Just v)  = Just $ encodeJson (v)
+
+-- | TODO: be a good programmer and make this Array a → a → Int → Int
+findInd ∷ Array Role → Role → Int → Int
+findInd []    _   n = n
+findInd array val n =
+  if (val == val') then n else findInd array' val (n + 1)
+  where val'   = case uncons array of
+                   Just {head: a, tail: _}  → a
+                   Nothing                  → RoleNULL
+        array' = case uncons array of
+                   Just {head: _, tail: al} → al
+                   Nothing                  → []
+
 
 -- | finds the score for a given role for all the creeps at once
-calcRoleScore ∷ F.Object Json → Role → Int
+calcRoleScore ∷ F.Object (F.Object Json) → Role → Int
 calcRoleScore creeps RoleNULL      = 0
 calcRoleScore creeps RoleHarvester = score
   where score = 1000 `quot` (harvs + 1)
         harvs = numberOfRole RoleHarvester creeps
 
-numberOfRole ∷ Role → F.Object Json → Int
+numberOfRole ∷ Role → F.Object (F.Object Json) → Int
 numberOfRole role creeps = F.size $ F.filter roleFilter creeps
 
-roleFilter ∷ Json → Boolean
+roleFilter ∷ F.Object Json → Boolean
 roleFilter creep = false
 
 bestRole ∷ Array Int → Array Role → Int → Role → Role
@@ -102,7 +141,7 @@ createCreep spawn name = do
 spawnCreep ∷ Spawn → Array BodyPartType
   → String → Role → Effect Unit
 spawnCreep spawn parts name RoleHarvester = do
-    res ← Game.rawSpawnCreep spawn parts name "harv"
+    res ← Game.rawSpawnCreep spawn parts name RoleHarvester
     case res of
         Left  err → log $ show err
         Right str → log $ str <> " created succesfully"
