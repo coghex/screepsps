@@ -58,3 +58,5 @@ rawSpawnCreepAs spawn parts name role
   = createCreepImpl spawn parts role' Left Right
   where role' = encodeJson role
 
+time ∷ GameGlobal → Int
+time = unsafeField "time"

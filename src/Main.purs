@@ -22,7 +22,7 @@ main = do
   initCheck <- areWeInit memory
   case initCheck of
     Nothing -> do
-       initCorpsegrinder memory LoopGo
+       initCorpsegrinder game memory LoopGo
     Just status -> do
        runCorpsegrindeer game memory status
 
@@ -39,20 +39,28 @@ areWeInit memory = do
                     Just ls -> pure ls
 
 -- | simple initialization of memory
-initCorpsegrinder ∷ Memory.MemoryGlobal -> LoopStatus -> Effect Unit
-initCorpsegrinder memory status = do
+initCorpsegrinder ∷ GameGlobal → Memory.MemoryGlobal → LoopStatus -> Effect Unit
+initCorpsegrinder game memory status = do
   log "starting the corpsegrinder..."
   Memory.set memory "loopStatus" $ Just status
   Memory.set memory "utility" 0
+  -- we want to spawn a creep and hand out roles on the first tick
+  let creeps = Game.creeps game
+  manageCreeps creeps game memory
+  processCreeps creeps game memory
 
 -- | runs as the main loop function
 runCorpsegrindeer ∷ GameGlobal -> Memory.MemoryGlobal -> LoopStatus -> Effect Unit
 runCorpsegrindeer game memory LoopGo = do
   let creeps = Game.creeps game
-  -- manage the creep population
-  manageCreeps creeps game memory
-  -- change rolls based on game state
-  processCreeps creeps game memory
+      time = Game.time game
+  -- spawnging new creeps and managing roles doesnt need to be every tick
+  if (0 == time `mod` 12) then do
+    -- manage the creep population
+    manageCreeps creeps game memory
+    -- change rolls based on game state
+    processCreeps creeps game memory
+  else pure unit
   -- preform roles for each creep
   preformCreeps creeps game memory
   -- TODO: finish tower code
