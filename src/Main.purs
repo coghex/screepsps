@@ -11,6 +11,7 @@ import Data.Argonaut.Decode ( printJsonDecodeError, decodeJson )
 import Screeps.Game as Game
 import Screeps.Memory as Memory
 import Screeps.Types
+import Spawn
 import Creep
 import Foreign.Object as F
 
@@ -44,8 +45,10 @@ initCorpsegrinder game memory status = do
   log "starting the corpsegrinder..."
   Memory.set memory "loopStatus" $ Just status
   Memory.set memory "utility" 0
-  -- we want to spawn a creep and hand out roles on the first tick
   let creeps = Game.creeps game
+  -- we need to set the maximum amount of spots around each harvester
+  initSpawn1 creeps game memory
+  -- we want to spawn a creep and hand out roles on the first tick
   manageCreeps creeps game memory
   processCreeps creeps game memory
 

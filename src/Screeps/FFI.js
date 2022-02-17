@@ -106,6 +106,17 @@ exports.runThisFn2 = function(key){
     }
   }
 }
+exports.runThisFn3 = function(key){
+  return function(self){
+    return function(a){
+      return function(b){
+        return function(c){
+          return self[key](a,b,c);
+        }
+      }
+    }
+  }
+}
 exports.null = null;
 exports.undefined = undefined
 exports.notNullOrUndefined = function(x){

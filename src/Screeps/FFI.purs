@@ -19,6 +19,7 @@ foreign import runThisEffFn4 :: forall this a b c d e. String
 foreign import runThisFn0 :: forall this a. String -> this -> a
 foreign import runThisFn1 :: forall this a b. String -> this -> a -> b
 foreign import runThisFn2 :: forall this a b c. String -> this -> a -> b → c
+foreign import runThisFn3 :: forall this a b c d. String -> this -> a -> b → c → d
 
 foreign import data NullOrUndefined :: Type -> Type
 foreign import null :: forall a. NullOrUndefined a

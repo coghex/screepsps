@@ -15,6 +15,7 @@ import Data.Argonaut.Decode.Generic (genericDecodeJson)
 foreign import data GameGlobal :: Type
 foreign import data RawRoomObject :: Type -> Type
 foreign import data Room :: Type
+foreign import data WorldMap :: Type
 foreign import data RawStructure :: Type -> Type
 foreign import data RawOwnedStructure :: Type -> Type
 foreign import data RawConstructionSite :: Type
@@ -135,6 +136,17 @@ newtype Direction = Direction Int
 derive instance genericDirection :: Generic Direction _
 instance eqDirection :: Eq Direction where eq = genericEq
 instance showDirection :: Show Direction where show = genericShow
+
+newtype TerrainMask = TerrainMask Int
+derive instance genericTerrainMask :: Generic TerrainMask _
+instance eqTerrainMask :: Eq TerrainMask where eq = genericEq
+instance showTerrainMask :: Show TerrainMask where show = genericShow
+
+newtype Terrain = Terrain String
+derive instance genericTerrain :: Generic Terrain _
+instance eqTerrain :: Eq Terrain where eq = genericEq
+instance showTerrain :: Show Terrain
+  where show (Terrain s) = s
 
 data TargetPosition a =
   TargetPt Int Int |

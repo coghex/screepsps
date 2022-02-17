@@ -60,3 +60,6 @@ rawSpawnCreepAs spawn parts name role
 
 time ∷ GameGlobal → Int
 time = unsafeField "time"
+
+map ∷ GameGlobal → WorldMap
+map = unsafeField "map"
