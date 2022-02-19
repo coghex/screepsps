@@ -2085,7 +2085,7 @@ var PS = {};
           if (v instanceof Screeps_Types.TargetObj) {
               return Screeps_FFI.runThisEffFn1("moveTo")(creep)(v.value0);
           };
-          throw new Error("Failed pattern match at Screeps.Creep (line 103, column 1 - line 103, column 67): " + [ creep.constructor.name, v.constructor.name ]);
+          throw new Error("Failed pattern match at Screeps.Creep (line 107, column 1 - line 107, column 67): " + [ creep.constructor.name, v.constructor.name ]);
       };
   };                                           
   var harvestSource = Screeps_FFI.runThisEffFn1("harvest");

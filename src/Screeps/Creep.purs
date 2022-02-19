@@ -3,10 +3,14 @@ module Screeps.Creep where
 import Prelude
 import Effect (Effect)
 import Data.Maybe (Maybe)
+import Data.Either (Either)
+import Data.Argonaut.Decode (class DecodeJson, decodeJson, JsonDecodeError)
+import Screeps.FFI (unsafeGetCreepEff)
 import Screeps.Types
 import Screeps.FFI ( unsafeField, runThisFn1
                    , runThisEffFn1, runThisEffFn2
-                   , runThisEffFn3, toMaybe )
+                   , runThisEffFn3, toMaybe
+                   , unsafeGetCreepEff )
 foreign import data CreepCargo :: Type
 foreign import totalAmtCarrying :: Creep -> Int
 
@@ -116,3 +120,6 @@ transferAmtToStructure = runThisEffFn3 "transfer"
 
 creepStore ∷ Creep → Store
 creepStore = unsafeField "store"
+
+getCreepMem ∷ ∀ a. (DecodeJson a) ⇒ String → Effect (Either JsonDecodeError a)
+getCreepMem key = decodeJson <$> unsafeGetCreepEff key

@@ -135,6 +135,11 @@ exports.toMaybeImpl = function (val, nothing, just){
         return just(val);
     }
 }
+exports.unsafeGetCreepEff = function(key){
+    return function(){
+        return Memory.creeps[key];
+    }
+}
 // exports.rawSpawnCreep = function(){
 //   return function (self){
 //     return function(spawn){

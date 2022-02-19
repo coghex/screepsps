@@ -115,7 +115,7 @@ processCreeps hash game mem = do
     Memory.set mem "utility" utl0
 --    log $ "U(n-1): " <> show utl0 <> ", U(n): "
 
--- | goes through each individual creep to see if they can increae utility
+-- | goes through each individual creep to see if they can increase utility
 processCreep ∷ F.Object (F.Object Json) → Int → Array Int → Array Role → F.Object (F.Object Json)
 processCreep creeps utl0 scores roles
   = F.mapWithKey (processCreepF utl0 scores roles) creeps
