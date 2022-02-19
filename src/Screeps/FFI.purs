@@ -29,7 +29,9 @@ foreign import isNull :: forall a. NullOrUndefined a -> Boolean
 foreign import isUndefined :: forall a. NullOrUndefined a -> Boolean
 foreign import toMaybeImpl :: forall a m. Fn3 (NullOrUndefined a) m (a -> m) m
 
-foreign import unsafeGetCreepEff :: ∀ val. String → Effect val
+foreign import unsafeGetAllCreepEff :: ∀ val. String → Effect val
+foreign import unsafeGetCreepEff :: ∀ val. String → String → Effect val
+foreign import unsafeSetCreepEff :: ∀ val. String → String → val → Effect Unit
 
 toMaybe :: forall a. NullOrUndefined a -> Maybe a
 toMaybe n = runFn3 toMaybeImpl n Nothing Just

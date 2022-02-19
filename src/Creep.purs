@@ -26,6 +26,7 @@ import Screeps.Game as Game
 import Screeps.Const
 import Screeps.Spawn ( spawnStore, spawnStoreEnergy )
 import Role.Harvester (preformHarvester)
+import Role.Builder (preformBuilder)
 
 -- | creep population is managed in this function
 manageCreeps ∷ F.Object Creep → GameGlobal
@@ -68,6 +69,11 @@ preformCreep _      (Tuple "NULL" val) = pure unit
 preformCreep creeps (Tuple key    val) = case role of
   RoleNULL → pure unit
   RoleIdle → pure unit
+  RoleBuilder → do
+    let creep = F.lookup key creeps
+    case creep of
+      Nothing → pure unit
+      Just c0 → preformBuilder c0
   RoleHarvester → do
     let creep = F.lookup key creeps
     case creep of
@@ -158,6 +164,9 @@ findInd array val n =
 calcRoleScore ∷ F.Object (F.Object Json) → Role → Int
 calcRoleScore creeps RoleNULL      = 0
 calcRoleScore creeps RoleIdle      = 1
+calcRoleScore creeps RoleBuilder   = score
+  where score    = 800 `quot` (builders + 1)
+        builders = numberOfRole RoleBuilder creeps
 calcRoleScore creeps RoleHarvester = score
   where score = 1000 `quot` (harvs + 1)
         harvs = numberOfRole RoleHarvester creeps

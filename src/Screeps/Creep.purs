@@ -5,12 +5,14 @@ import Effect (Effect)
 import Data.Maybe (Maybe)
 import Data.Either (Either)
 import Data.Argonaut.Decode (class DecodeJson, decodeJson, JsonDecodeError)
+import Data.Argonaut.Encode (class EncodeJson, encodeJson)
 import Screeps.FFI (unsafeGetCreepEff)
 import Screeps.Types
 import Screeps.FFI ( unsafeField, runThisFn1
                    , runThisEffFn1, runThisEffFn2
                    , runThisEffFn3, toMaybe
-                   , unsafeGetCreepEff )
+                   , unsafeGetCreepEff, unsafeSetCreepEff
+                   , unsafeGetAllCreepEff )
 foreign import data CreepCargo :: Type
 foreign import totalAmtCarrying :: Creep -> Int
 
@@ -121,5 +123,11 @@ transferAmtToStructure = runThisEffFn3 "transfer"
 creepStore ∷ Creep → Store
 creepStore = unsafeField "store"
 
-getCreepMem ∷ ∀ a. (DecodeJson a) ⇒ String → Effect (Either JsonDecodeError a)
-getCreepMem key = decodeJson <$> unsafeGetCreepEff key
+getAllCreepMem ∷ ∀ a. (DecodeJson a) ⇒ String → Effect (Either JsonDecodeError a)
+getAllCreepMem creep = decodeJson <$> unsafeGetAllCreepEff creep
+
+getCreepMem ∷ ∀ a. (DecodeJson a) ⇒ String → String → Effect (Either JsonDecodeError a)
+getCreepMem creep key = decodeJson <$> unsafeGetCreepEff creep key
+
+setCreepMem ∷ ∀ a. (EncodeJson a) ⇒ String → String → a → Effect Unit
+setCreepMem creep key val = unsafeSetCreepEff creep key $ encodeJson val

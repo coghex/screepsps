@@ -135,9 +135,19 @@ exports.toMaybeImpl = function (val, nothing, just){
         return just(val);
     }
 }
-exports.unsafeGetCreepEff = function(key){
+exports.unsafeGetAllCreepEff = function(creep){
     return function(){
-        return Memory.creeps[key];
+        return Memory.creeps[creep];
+    }
+}
+exports.unsafeGetCreepEff = function(creep,key){
+    return function(){
+        return Memory.creeps[creep][key];
+    }
+}
+exports.unsafeSetCreepEff = function(creep,key){
+    return function(val){
+        return Memory.creeps[creep][key] = val;
     }
 }
 // exports.rawSpawnCreep = function(){

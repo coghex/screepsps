@@ -12,5 +12,8 @@ storeCapacity = unsafeField "storeCapacity"
 store ∷ Storage → Store
 store = unsafeField "store"
 
-storeGet ∷ Storage → ResourceType → Int
-storeGet s (ResourceType res) = unsafeField res (store s)
+storageGet ∷ Storage → ResourceType → Int
+storageGet s (ResourceType res) = unsafeField res (store s)
+
+storeGet ∷ Store → ResourceType → Int
+storeGet s (ResourceType res) = unsafeField res s
